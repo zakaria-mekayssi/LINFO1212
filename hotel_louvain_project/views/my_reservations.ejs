@@ -6,41 +6,49 @@
     <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
-    <div class="content-box">
+    <header class="navbar">
+      <div class="navbar-left">
+        <a href="/" class="brand">Hôtel Louvain</a>
+        <a href="/rooms">Chambres</a>
+        <a href="/my-reservations">Mes réservations</a>
+      </div>
+      <div class="navbar-right">
+        <% if (user) { %>
+          <span class="navbar-user">Bonjour, <%= user.username %></span>
+          <a href="/logout">Déconnexion</a>
+        <% } %>
+      </div>
+    </header>
+
+    <main class="content">
       <h1>Mes réservations</h1>
 
-      <% if (reservations.length === 0) { %>
-      <p>Vous n'avez encore aucune réservation.</p>
+      <% if (!reservations || reservations.length === 0) { %>
+        <p>Vous n'avez pas encore de réservation.</p>
       <% } else { %>
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Chambre</th>
-            <th>Type</th>
-            <th>Arrivée</th>
-            <th>Départ</th>
-            <th>Personnes</th>
-            <th>Statut</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% reservations.forEach(r => { %>
-          <tr>
-            <td><%= r.roomId ? r.roomId.name : '-' %></td>
-            <td><%= r.roomId ? r.roomId.type : '-' %></td>
-            <td><%= r.checkIn.toISOString().slice(0,10) %></td>
-            <td><%= r.checkOut.toISOString().slice(0,10) %></td>
-            <td><%= r.guests %></td>
-            <td><%= r.status %></td>
-          </tr>
-          <% }) %>
-        </tbody>
-      </table>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Chambre</th>
+              <th>Arrivée</th>
+              <th>Départ</th>
+              <th>Personnes</th>
+              <th>Statut</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% reservations.forEach(function (r) { %>
+              <tr>
+                <td><%= r.roomId ? r.roomId.name : 'Chambre supprimée' %></td>
+                <td><%= r.checkIn.toLocaleDateString('fr-BE') %></td>
+                <td><%= r.checkOut.toLocaleDateString('fr-BE') %></td>
+                <td><%= r.guests %></td>
+                <td><%= r.status %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
       <% } %>
-
-      <p style="margin-top: 1.5rem">
-        <a href="/">← Retour à l'accueil</a>
-      </p>
-    </div>
+    </main>
   </body>
 </html>

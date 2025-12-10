@@ -1,42 +1,55 @@
-<h1>Home</h1>
 <!DOCTYPE html>
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <title>Hôtel Louvain – Accueil</title>
+    <title>Accueil – Hôtel Louvain</title>
     <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
-    <div class="content-box">
+    <header class="navbar">
+      <div class="navbar-left">
+        <a href="/" class="brand">Hôtel Louvain</a>
+        <a href="/rooms">Chambres</a>
+        <% if (user) { %>
+          <a href="/my-reservations">Mes réservations</a>
+        <% } %>
+      </div>
+      <div class="navbar-right">
+        <% if (user) { %>
+          <span class="navbar-user">Bonjour, <%= user.username %></span>
+          <a href="/logout">Déconnexion</a>
+        <% } else { %>
+          <a href="/login">Connexion</a>
+          <a href="/register">Inscription</a>
+        <% } %>
+      </div>
+    </header>
+
+    <main class="content">
       <h1>Bienvenue à l'Hôtel Louvain</h1>
+      <p>Cette application permet de réserver une chambre en ligne.</p>
 
-      <% if (user) { %>
-      <p>Connecté en tant que <strong><%= user.username %></strong></p>
-      <div class="links">
-        <a href="/rooms">🔍 Rechercher une chambre</a> |
-        <a href="/my-reservations">📅 Mes réservations</a> |
-        <a href="/logout">Se déconnecter</a>
-        <% if (user.isAdmin) { %> | <a href="/admin">🛠 Admin</a> <% } %>
-      </div>
-      <% } else { %>
-      <p>Connectez-vous pour réserver votre séjour.</p>
-      <div class="links">
-        <a href="/login">Se connecter</a> |
-        <a href="/register">Créer un compte</a>
-      </div>
-      <% } %>
-
-      <h2>Chambres en avant</h2>
-      <div class="card-grid">
-        <% rooms.forEach(room => { %>
-        <div class="card">
-          <h3><%= room.name %> – <%= room.type %></h3>
-          <p><strong><%= room.pricePerNight %> € / nuit</strong></p>
-          <p>Capacité : <%= room.capacity %> personnes</p>
-          <a href="/rooms/<%= room._id %>">Voir les détails</a>
+      <section>
+        <h2>Quelques chambres disponibles</h2>
+        <div class="card-grid">
+          <% if (rooms && rooms.length > 0) { %>
+            <% rooms.forEach(function (room) { %>
+              <article class="card">
+                <h3><%= room.name %></h3>
+                <p>Type : <%= room.type %></p>
+                <p><strong><%= room.pricePerNight %> € / nuit</strong></p>
+                <a href="/rooms/<%= room._id %>">Voir les détails</a>
+              </article>
+            <% }) %>
+          <% } else { %>
+            <p>Aucune chambre n'est encore enregistrée.</p>
+          <% } %>
         </div>
-        <% }) %>
-      </div>
-    </div>
+
+        <p class="center">
+          <a href="/rooms" class="btn">Voir toutes les chambres</a>
+        </p>
+      </section>
+    </main>
   </body>
 </html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Réservation confirmée – Hôtel Louvain</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <header class="navbar">
+      <div class="navbar-left">
+        <a href="/" class="brand">Hôtel Louvain</a>
+        <a href="/rooms">Chambres</a>
+        <a href="/my-reservations">Mes réservations</a>
+      </div>
+      <div class="navbar-right">
+        <% if (user) { %>
+          <span class="navbar-user">Bonjour, <%= user.username %></span>
+          <a href="/logout">Déconnexion</a>
+        <% } %>
+      </div>
+    </header>
+
+    <main class="content">
+      <h1>Réservation confirmée</h1>
+
+      <p>Votre réservation pour <strong><%= room.name %></strong> a été enregistrée.</p>
+
+      <p>
+        Arrivée :
+        <strong><%= reservation.checkIn.toLocaleDateString('fr-BE') %></strong><br />
+        Départ :
+        <strong><%= reservation.checkOut.toLocaleDateString('fr-BE') %></strong><br />
+        Nombre de personnes :
+        <strong><%= reservation.guests %></strong>
+      </p>
+
+      <p>
+        <a href="/my-reservations" class="btn">Voir mes réservations</a>
+      </p>
+    </main>
+  </body>
+</html>

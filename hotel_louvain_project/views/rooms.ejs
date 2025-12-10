@@ -2,49 +2,58 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <title>Recherche de chambres – Hôtel Louvain</title>
+    <title>Chambres – Hôtel Louvain</title>
     <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
-    <div class="content-box">
-      <h1>Rechercher une chambre</h1>
+    <header class="navbar">
+      <div class="navbar-left">
+        <a href="/" class="brand">Hôtel Louvain</a>
+        <a href="/rooms">Chambres</a>
+        <% if (user) { %>
+          <a href="/my-reservations">Mes réservations</a>
+        <% } %>
+      </div>
+      <div class="navbar-right">
+        <% if (user) { %>
+          <span class="navbar-user">Bonjour, <%= user.username %></span>
+          <a href="/logout">Déconnexion</a>
+        <% } else { %>
+          <a href="/login">Connexion</a>
+          <a href="/register">Inscription</a>
+        <% } %>
+      </div>
+    </header>
 
-      <form method="GET" action="/rooms" class="filter-form">
-        <label>
-          Type :
-          <select name="type">
-            <option value="all" <%= filters.type === 'all' ? 'selected' : '' %>>Tous</option>
-            <option value="single" <%= filters.type === 'single' ? 'selected' : '' %>>Single</option>
-            <option value="double" <%= filters.type === 'double' ? 'selected' : '' %>>Double</option>
-            <option value="suite" <%= filters.type === 'suite' ? 'selected' : '' %>>Suite</option>
-          </select>
-        </label>
+    <main class="content">
+      <h1>Chambres disponibles</h1>
 
-        <label>Prix min:
-          <input type="number" name="minPrice" value="<%= filters.minPrice %>" />
-        </label>
-
-        <label>Prix max:
-          <input type="number" name="maxPrice" value="<%= filters.maxPrice %>" />
-        </label>
-
-        <button type="submit">Filtrer</button>
+      <form method="GET" action="/rooms" class="form-box">
+        <label for="type">Type de chambre</label>
+        <select name="type" id="type">
+          <option value="all" <%= type === 'all' ? 'selected' : '' %>>Tous</option>
+          <option value="single" <%= type === 'single' ? 'selected' : '' %>>Single</option>
+          <option value="double" <%= type === 'double' ? 'selected' : '' %>>Double</option>
+          <option value="suite" <%= type === 'suite' ? 'selected' : '' %>>Suite</option>
+        </select>
+        <button type="submit" class="btn">Filtrer</button>
       </form>
 
       <div class="card-grid">
         <% if (rooms.length === 0) { %>
-          <p>Aucune chambre ne correspond à votre recherche.</p>
+          <p>Aucune chambre ne correspond à ce filtre.</p>
         <% } %>
 
-        <% rooms.forEach(room => { %>
-          <div class="card">
-            <h3><%= room.name %> – <%= room.type %></h3>
+        <% rooms.forEach(function (room) { %>
+          <article class="card">
+            <h2><%= room.name %></h2>
+            <p>Type : <%= room.type %></p>
+            <p>Capacité : <%= room.capacity %> personne(s)</p>
             <p><strong><%= room.pricePerNight %> € / nuit</strong></p>
-            <p>Capacité : <%= room.capacity %> personnes</p>
             <a href="/rooms/<%= room._id %>">Voir les détails</a>
-          </div>
+          </article>
         <% }) %>
       </div>
-    </div>
+    </main>
   </body>
 </html>

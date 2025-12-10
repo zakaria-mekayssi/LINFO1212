@@ -6,37 +6,47 @@
     <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
-    <h1>Créer un compte</h1>
+    <header class="navbar">
+      <div class="navbar-left">
+        <a href="/" class="brand">Hôtel Louvain</a>
+        <a href="/rooms">Chambres</a>
+      </div>
+      <div class="navbar-right">
+        <a href="/login">Connexion</a>
+        <a href="/register">Inscription</a>
+      </div>
+    </header>
 
-    <% if (error) { %>
-    <p style="color: red"><%= error %></p>
-    <% } %>
+    <main class="content">
+      <h1>Inscription</h1>
 
-    <form action="/register" method="POST" class="form-box">
-      <input type="email" name="email" placeholder="Email" required />
-      <input
-        type="text"
-        name="username"
-        placeholder="Nom d'utilisateur"
-        required
-      />
-      <input
-        type="password"
-        name="password"
-        placeholder="Mot de passe"
-        required
-      />
-      <input
-        type="password"
-        name="confirmPassword"
-        placeholder="Confirmer le mot de passe"
-        required
-      />
-      <button type="submit">Créer le compte</button>
-    </form>
+      <% if (error) { %>
+        <p class="error"><%= error %></p>
+      <% } %>
 
-    <p style="text-align: center; margin-top: 1rem">
-      Déjà un compte ? <a href="/login">Se connecter</a>
-    </p>
+      <form method="POST" action="/register" class="form-box">
+        <label>
+          Email
+          <input type="email" name="email" required />
+        </label>
+
+        <label>
+          Nom d'utilisateur
+          <input type="text" name="username" required />
+        </label>
+
+        <label>
+          Mot de passe
+          <input type="password" name="password" required />
+        </label>
+
+        <label>
+          Confirmation du mot de passe
+          <input type="password" name="confirmPassword" required />
+        </label>
+
+        <button type="submit" class="btn">Créer le compte</button>
+      </form>
+    </main>
   </body>
 </html>

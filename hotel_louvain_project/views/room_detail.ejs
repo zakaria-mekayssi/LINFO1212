@@ -6,54 +6,79 @@
     <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
-    <div class="content-box">
-      <h1><%= room.name %> – <%= room.type %></h1>
+    <header class="navbar">
+      <div class="navbar-left">
+        <a href="/" class="brand">Hôtel Louvain</a>
+        <a href="/rooms">Chambres</a>
+        <% if (user) { %>
+          <a href="/my-reservations">Mes réservations</a>
+        <% } %>
+      </div>
+      <div class="navbar-right">
+        <% if (user) { %>
+          <span class="navbar-user">Bonjour, <%= user.username %></span>
+          <a href="/logout">Déconnexion</a>
+        <% } else { %>
+          <a href="/login">Connexion</a>
+          <a href="/register">Inscription</a>
+        <% } %>
+      </div>
+    </header>
 
-      <p><strong><%= room.pricePerNight %> € / nuit</strong></p>
-      <p>Capacité : <%= room.capacity %> personnes</p>
-      <p><%= room.description %></p>
+    <main class="content">
+      <h1><%= room.name %></h1>
 
-      <% if (room.amenities && room.amenities.length) { %>
-      <h3>Équipements</h3>
-      <ul>
-        <% room.amenities.forEach(a => { %>
-        <li><%= a %></li>
-        <% }) %>
-      </ul>
-      <% } %> <% if (error) { %>
-      <p style="color: red"><%= error %></p>
-      <% } %> <% if (!user) { %>
-      <p>Vous devez être connecté pour réserver.</p>
-      <a href="/login">Se connecter</a>
-      <% } else { %>
-      <h2>Réserver cette chambre</h2>
-      <form
-        action="/rooms/<%= room._id %>/reserve"
-        method="POST"
-        class="form-box"
-      >
-        <label
-          >Date d'arrivée:
-          <input type="date" name="checkIn" required />
-        </label>
-
-        <label
-          >Date de départ:
-          <input type="date" name="checkOut" required />
-        </label>
-
-        <label
-          >Nombre de personnes:
-          <input type="number" name="guests" min="1" value="1" required />
-        </label>
-
-        <button type="submit">Confirmer la réservation</button>
-      </form>
+      <% if (room.imageUrl) { %>
+        <img src="<%= room.imageUrl %>" alt="Photo de la chambre" class="room-image" />
       <% } %>
 
-      <p style="margin-top: 1.5rem">
-        <a href="/rooms">← Retour à la recherche</a>
-      </p>
-    </div>
+      <p>Type : <%= room.type %></p>
+      <p>Capacité : <%= room.capacity %> personne(s)</p>
+      <p>Prix : <strong><%= room.pricePerNight %> € / nuit</strong></p>
+
+      <% if (room.description) { %>
+        <p><%= room.description %></p>
+      <% } %>
+
+      <% if (room.amenities && room.amenities.length > 0) { %>
+        <p>Équipements :</p>
+        <ul>
+          <% room.amenities.forEach(function (a) { %>
+            <li><%= a %></li>
+          <% }) %>
+        </ul>
+      <% } %>
+
+      <h2>Réserver cette chambre</h2>
+
+      <% if (!user) { %>
+        <p>
+          Vous devez être connecté pour réserver.
+          <a href="/login">Connexion</a>
+        </p>
+      <% } else { %>
+        <form method="POST" action="/rooms/<%= room._id %>/reserve" class="form-box">
+          <label>
+            Date d'arrivée
+            <input type="date" name="checkIn" required />
+          </label>
+          <label>
+            Date de départ
+            <input type="date" name="checkOut" required />
+          </label>
+          <label>
+            Nombre de personnes
+            <input
+              type="number"
+              name="guests"
+              min="1"
+              max="<%= room.capacity %>"
+              required
+            />
+          </label>
+          <button type="submit" class="btn">Réserver</button>
+        </form>
+      <% } %>
+    </main>
   </body>
 </html>

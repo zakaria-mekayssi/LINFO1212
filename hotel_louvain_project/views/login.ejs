@@ -6,25 +6,36 @@
     <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
-    <h1>Connexion</h1>
+    <header class="navbar">
+      <div class="navbar-left">
+        <a href="/" class="brand">Hôtel Louvain</a>
+        <a href="/rooms">Chambres</a>
+      </div>
+      <div class="navbar-right">
+        <a href="/login">Connexion</a>
+        <a href="/register">Inscription</a>
+      </div>
+    </header>
 
-    <% if (error) { %>
-    <p style="color: red"><%= error %></p>
-    <% } %>
+    <main class="content">
+      <h1>Connexion</h1>
 
-    <form action="/login" method="POST" class="form-box">
-      <input type="email" name="email" placeholder="Email" required />
-      <input
-        type="password"
-        name="password"
-        placeholder="Mot de passe"
-        required
-      />
-      <button type="submit">Se connecter</button>
-    </form>
+      <% if (error) { %>
+        <p class="error"><%= error %></p>
+      <% } %>
 
-    <p style="text-align: center; margin-top: 1rem">
-      Pas encore de compte ? <a href="/register">Créer un compte</a>
-    </p>
+      <form method="POST" action="/login" class="form-box">
+        <label>
+          Email
+          <input type="email" name="email" required />
+        </label>
+        <label>
+          Mot de passe
+          <input type="password" name="password" required />
+        </label>
+
+        <button type="submit" class="btn">Se connecter</button>
+      </form>
+    </main>
   </body>
 </html>
