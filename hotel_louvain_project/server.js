@@ -221,7 +221,12 @@ app.get('/logout', (req, res) => {
   });
 });
 
-// démarrage du serveur
-app.listen(PORT, () => {
-  console.log(`Serveur démarré sur http://localhost:${PORT}`);
-});
+// démarrage du serveur uniquement si ce fichier est exécuté directement
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Serveur démarré sur http://localhost:${PORT}`);
+  });
+}
+
+// export de l'application pour les tests
+module.exports = app;
