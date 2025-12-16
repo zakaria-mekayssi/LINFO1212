@@ -1,29 +1,20 @@
-/* =========================
-   VARIABLES
-========================= */
 :root {
   --primary: #1e5eff;
   --primary-dark: #174bd1;
-
   --text: #0f172a;
   --muted: #5b677a;
-
-  --background: #f4f6fb;
+  --bg: #f4f6fb;
   --card: #ffffff;
   --border: #e5e7eb;
 
-  /* couleurs pro pour la landing */
-  --landing-title: #ffffff;
-  --landing-sub: rgba(255, 255, 255, 0.88);
-  --landing-btn-bg: rgba(255, 255, 255, 0.18);
-  --landing-btn-bg-hover: rgba(255, 255, 255, 0.26);
+  --glass: rgba(255, 255, 255, 0.85);
+  --landing-overlay-a: rgba(0, 0, 0, 0.38);
+  --landing-overlay-b: rgba(0, 0, 0, 0.62);
+  --landing-btn: rgba(255, 255, 255, 0.18);
+  --landing-btn-hover: rgba(255, 255, 255, 0.26);
   --landing-btn-border: rgba(255, 255, 255, 0.35);
 }
 
-
-/* =========================
-   RESET & BASE
-========================= */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -32,7 +23,7 @@
 
 body {
   font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
-  background: var(--background);
+  background: var(--bg);
   color: var(--text);
   min-height: 100vh;
 }
@@ -48,12 +39,9 @@ a {
   flex-direction: column;
 }
 
-
-/* =========================
-   NAVBAR
-========================= */
+/* navbar */
 .nav {
-  background: rgba(255, 255, 255, 0.85);
+  background: var(--glass);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border);
   position: sticky;
@@ -65,7 +53,6 @@ a {
   max-width: 1100px;
   margin: 0 auto;
   padding: 12px 16px;
-
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -111,26 +98,17 @@ a {
   font-weight: 900;
 }
 
-
-/* =========================
-   LANDING PAGE (FULLSCREEN)
-========================= */
+/* landing */
 .landing {
   min-height: 100vh;
   display: flex;
-
   align-items: flex-start;
   justify-content: center;
-
   padding-top: 95px;
-
   background:
-    linear-gradient(
-      rgba(0, 0, 0, 0.38),
-      rgba(0, 0, 0, 0.62)
-    ),
+    linear-gradient(var(--landing-overlay-a), var(--landing-overlay-b)),
     url("https://theluxuryeditor.com/wp-content/uploads/2019/08/7-Rooms-26.jpg")
-      top center / cover no-repeat;
+    top center / cover no-repeat;
 }
 
 .landing-card {
@@ -146,13 +124,12 @@ a {
   line-height: 1.05;
   margin-bottom: 10px;
   font-weight: 950;
-  color: var(--landing-title);
 }
 
 .sub {
   max-width: 60ch;
   margin: 0 auto 20px;
-  color: var(--landing-sub);
+  opacity: 0.9;
 }
 
 .actions {
@@ -162,10 +139,7 @@ a {
   flex-wrap: wrap;
 }
 
-
-/* =========================
-   BUTTONS
-========================= */
+/* boutons */
 .btn {
   display: inline-block;
   background: var(--primary);
@@ -180,19 +154,16 @@ a {
 }
 
 .btn-ghost {
-  background: var(--landing-btn-bg);
+  background: var(--landing-btn);
   border: 1px solid var(--landing-btn-border);
   color: #ffffff;
 }
 
 .btn-ghost:hover {
-  background: var(--landing-btn-bg-hover);
+  background: var(--landing-btn-hover);
 }
 
-
-/* =========================
-   MAIN CONTENT
-========================= */
+/* layout */
 .main {
   flex: 1;
   display: flex;
@@ -221,10 +192,7 @@ a {
   color: var(--muted);
 }
 
-
-/* =========================
-   GRID & CARDS
-========================= */
+/* cards + grid */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -266,10 +234,24 @@ a {
   font-weight: 950;
 }
 
+/* images chambres */
+.room-img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-bottom: 10px;
+}
 
-/* =========================
-   FORMS
-========================= */
+.room-img-large {
+  width: 100%;
+  max-height: 380px;
+  object-fit: cover;
+  border-radius: 16px;
+  margin: 12px 0;
+}
+
+/* formulaires */
 .form {
   max-width: 520px;
   margin: 0 auto;
@@ -302,10 +284,7 @@ select {
   margin-bottom: 12px;
 }
 
-
-/* =========================
-   ROOMS SEARCH FORM
-========================= */
+/* recherche sur rooms */
 .rooms-search {
   margin-top: 16px;
   display: flex;
@@ -318,10 +297,7 @@ select {
   min-width: 220px;
 }
 
-
-/* =========================
-   TABLE - MES RÉSERVATIONS
-========================= */
+/* table réservations */
 .table-wrap {
   margin-top: 14px;
   overflow-x: auto;
@@ -402,30 +378,7 @@ select {
   color: #991b1b;
 }
 
-
-/* =========================
-   IMAGES DES CHAMBRES
-========================= */
-.room-img {
-  width: 100%;
-  height: 160px;
-  object-fit: cover;
-  border-radius: 12px;
-  margin-bottom: 10px;
-}
-
-.room-img-large {
-  width: 100%;
-  max-height: 380px;
-  object-fit: cover;
-  border-radius: 16px;
-  margin: 12px 0;
-}
-
-
-/* =========================
-   FOOTER
-========================= */
+/* footer */
 .footer {
   padding: 16px;
   text-align: center;
@@ -433,10 +386,7 @@ select {
   font-size: 13px;
 }
 
-
-/* =========================
-   RESPONSIVE
-========================= */
+/* responsive */
 @media (max-width: 700px) {
   .big {
     font-size: 40px;

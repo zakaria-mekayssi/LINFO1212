@@ -1,367 +1,363 @@
-// server.js — Application de réservation pour Hôtel Louvain
+// import des librairies principales
+const express = require('express')
+const session = require('express-session')
+const path = require('path')
+const bcrypt = require('bcryptjs')
 
-const express = require('express');
-const session = require('express-session');
-const path = require('path');
-const bcrypt = require('bcryptjs');
+// import des modèles de données
+const User = require('./models/User')
+const Room = require('./models/Room')
+const Reservation = require('./models/Reservation')
 
-const User = require('./models/User');
-const Room = require('./models/Room');
-const Reservation = require('./models/Reservation');
-require('./db');
+// connexion à la base de données
+require('./db')
 
-const app = express();
-const PORT = 3000;
+// création de l’application express
+const app = express()
+const PORT = 3000
 
-/* =========================
-   CONFIGURATION
-========================= */
+// configuration du moteur de vues
+app.set('view engine', 'ejs')
+app.set('views', path.join(__dirname, 'views'))
 
-// moteur de vues
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
+// gestion des fichiers statiques
+app.use(express.static(path.join(__dirname, 'public')))
 
-// fichiers statiques + formulaires
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.urlencoded({ extended: false }));
+// lecture des données envoyées par les formulaires
+app.use(express.urlencoded({ extended: false }))
 
-// sessions
-app.use(
-  session({
-    secret: 'hotel-louvain-secret',
-    resave: false,
-    saveUninitialized: false
-  })
-);
+// configuration des sessions utilisateur
+app.use(session({
+  secret: 'hotel-louvain-secret',
+  resave: false,
+  saveUninitialized: false
+}))
 
-// utilisateur dispo dans toutes les vues
+// rendre l’utilisateur accessible dans toutes les pages
 app.use((req, res, next) => {
-  res.locals.user = req.session.user || null;
-  next();
-});
+  res.locals.user = req.session.user || null
+  next()
+})
 
-/* =========================
-   MIDDLEWARES
-========================= */
-
-function ensureAuthenticated(req, res, next) {
+// middleware pour vérifier si l’utilisateur est connecté
+const auth = (req, res, next) => {
   if (!req.session.user) {
-    return res.redirect('/login');
+    return res.redirect('/login')
   }
-  next();
+  next()
 }
 
-// calcul du nombre de nuits
-function nightsBetween(checkIn, checkOut) {
-  const start = new Date(checkIn);
-  const end = new Date(checkOut);
+// fonction utilitaire pour calculer le nombre de nuits
+const nightsBetween = (start, end) => {
+  const a = new Date(start)
+  const b = new Date(end)
 
-  start.setHours(0, 0, 0, 0);
-  end.setHours(0, 0, 0, 0);
+  // normalisation des heures
+  a.setHours(0, 0, 0, 0)
+  b.setHours(0, 0, 0, 0)
 
-  const diff = end.getTime() - start.getTime();
-  const nights = Math.ceil(diff / (1000 * 60 * 60 * 24));
+  // calcul de la différence en jours
+  const diff = b - a
+  const nights = Math.ceil(diff / 86400000)
 
-  return Math.max(1, nights);
+  // au minimum une nuit
+  return Math.max(1, nights)
 }
 
-/* =========================
-   ROUTES PUBLIQUES
-========================= */
-
-// accueil
+// page d’accueil avec quelques chambres
 app.get('/', async (req, res) => {
   try {
-    const rooms = await Room.find({ isActive: true }).limit(3);
-    res.render('index', { rooms });
+    // récupération des chambres actives
+    const rooms = await Room.find({ isActive: true }).limit(3)
+
+    // affichage de la page d’accueil
+    res.render('index', { rooms })
   } catch (err) {
-    console.error(err);
-    res.status(500).send('Erreur serveur');
+    console.error(err)
+    res.status(500).send('Erreur serveur')
   }
-});
+})
 
-// liste des chambres + filtre + recherche
+// page listant toutes les chambres
 app.get('/rooms', async (req, res) => {
-  const type = req.query.type || 'all';
-  const q = req.query.q || '';
+  // récupération des filtres depuis l’URL
+  const type = req.query.type || 'all'
+  const q = (req.query.q || '').trim()
 
-  const filter = { isActive: true };
+  // filtre de base
+  const filter = { isActive: true }
 
+  // filtre par type de chambre
   if (type !== 'all') {
-    filter.type = type;
+    filter.type = type
   }
 
-  if (q.trim() !== '') {
-    filter.name = { $regex: q, $options: 'i' };
+  // recherche par nom de chambre
+  if (q) {
+    filter.name = { $regex: q, $options: 'i' }
   }
 
   try {
-    const rooms = await Room.find(filter);
-    res.render('rooms', { rooms, type, q });
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Erreur serveur');
-  }
-});
+    // récupération des chambres depuis la base
+    const rooms = await Room.find(filter)
 
-// détail chambre
+    // affichage de la page
+    res.render('rooms', { rooms, type, q })
+  } catch (err) {
+    console.error(err)
+    res.status(500).send('Erreur serveur')
+  }
+})
+
+// page de détails d’une chambre
 app.get('/rooms/:id', async (req, res) => {
   try {
-    const room = await Room.findById(req.params.id);
+    // recherche de la chambre par id
+    const room = await Room.findById(req.params.id)
+
+    // vérification de l’existence
     if (!room || !room.isActive) {
-      return res.status(404).send('Chambre introuvable');
+      return res.status(404).send('Chambre introuvable')
     }
-    res.render('room_detail', { room, error: null });
+
+    // affichage de la page détail
+    res.render('room_detail', { room, error: null })
   } catch (err) {
-    console.error(err);
-    res.status(500).send('Erreur serveur');
+    console.error(err)
+    res.status(500).send('Erreur serveur')
   }
-});
+})
 
-/* =========================
-   RÉSERVATIONS
-========================= */
+// création d’une réservation
+app.post('/rooms/:id/reserve', auth, async (req, res) => {
+  // récupération des données du formulaire
+  const { checkIn, checkOut, guests } = req.body
 
-// créer réservation + prévention des conflits
-app.post('/rooms/:id/reserve', ensureAuthenticated, async (req, res) => {
-  const { checkIn, checkOut, guests } = req.body;
-
+  // vérification des champs
   if (!checkIn || !checkOut || !guests) {
-    return res.redirect(`/rooms/${req.params.id}`);
+    return res.redirect(`/rooms/${req.params.id}`)
   }
 
   try {
-    const room = await Room.findById(req.params.id);
+    // récupération de la chambre
+    const room = await Room.findById(req.params.id)
+
+    // vérification de la chambre
     if (!room || !room.isActive) {
-      return res.status(404).send('Chambre introuvable');
+      return res.status(404).send('Chambre introuvable')
     }
 
-    const checkInDate = new Date(checkIn);
-    const checkOutDate = new Date(checkOut);
+    // conversion des dates
+    const inD = new Date(checkIn)
+    const outD = new Date(checkOut)
 
-    if (checkOutDate <= checkInDate) {
+    // vérification de la cohérence des dates
+    if (outD <= inD) {
       return res.render('room_detail', {
         room,
         error: "La date de départ doit être après la date d'arrivée."
-      });
+      })
     }
 
-    // 🔒 prévention des conflits (overlap)
+    // vérification des conflits de réservation
     const conflict = await Reservation.findOne({
       roomId: room._id,
       status: 'confirmed',
-      checkIn: { $lt: checkOutDate },
-      checkOut: { $gt: checkInDate }
-    });
+      checkIn: { $lt: outD },
+      checkOut: { $gt: inD }
+    })
 
+    // si conflit détecté
     if (conflict) {
       return res.render('room_detail', {
         room,
         error: "Cette chambre est déjà réservée pour ces dates."
-      });
+      })
     }
 
-    const reservation = new Reservation({
+    // création de la réservation
+    const reservation = await Reservation.create({
       userId: req.session.user._id,
       roomId: room._id,
-      checkIn: checkInDate,
-      checkOut: checkOutDate,
+      checkIn: inD,
+      checkOut: outD,
       guests: Number(guests),
       status: 'confirmed'
-    });
+    })
 
-    await reservation.save();
+    // calcul du prix total
+    const nights = nightsBetween(inD, outD)
+    const totalPrice = nights * room.pricePerNight
 
-    const nights = nightsBetween(checkInDate, checkOutDate);
-    const totalPrice = nights * room.pricePerNight;
-
+    // page de confirmation
     res.render('reservation_confirmed', {
       room,
       reservation,
       nights,
       totalPrice
-    });
+    })
   } catch (err) {
-    console.error(err);
-    res.status(500).send('Erreur serveur');
+    console.error(err)
+    res.status(500).send('Erreur serveur')
   }
-});
+})
 
-// mes réservations + total
-app.get('/my-reservations', ensureAuthenticated, async (req, res) => {
+// affichage des réservations de l’utilisateur
+app.get('/my-reservations', auth, async (req, res) => {
   try {
+    // récupération des réservations utilisateur
     const raw = await Reservation.find({ userId: req.session.user._id })
       .populate('roomId')
-      .sort({ checkIn: -1 });
+      .sort({ checkIn: -1 })
 
+    // ajout des informations calculées
     const reservations = raw.map(r => {
-      const nights = nightsBetween(r.checkIn, r.checkOut);
-      const totalPrice = r.roomId
-        ? nights * r.roomId.pricePerNight
-        : 0;
+      const nights = nightsBetween(r.checkIn, r.checkOut)
+      const totalPrice = r.roomId ? nights * r.roomId.pricePerNight : 0
+      return { ...r.toObject(), nights, totalPrice }
+    })
 
-      return {
-        ...r.toObject(),
-        nights,
-        totalPrice
-      };
-    });
-
-    res.render('my_reservations', { reservations });
+    // affichage de la page
+    res.render('my_reservations', { reservations })
   } catch (err) {
-    console.error(err);
-    res.status(500).send('Erreur serveur');
+    console.error(err)
+    res.status(500).send('Erreur serveur')
   }
-});
+})
 
-/* =========================
-   ANNULATION (> 48h)
-========================= */
-
-// page annulation
-app.get('/reservations/:id/cancel', ensureAuthenticated, async (req, res) => {
+// page d’annulation d’une réservation
+app.get('/reservations/:id/cancel', auth, async (req, res) => {
   try {
-    const reservation = await Reservation.findById(req.params.id).populate('roomId');
+    // récupération de la réservation
+    const r = await Reservation.findById(req.params.id).populate('roomId')
 
-    if (!reservation) {
-      return res.status(404).send('Réservation introuvable');
+    // vérification des droits
+    if (!r || String(r.userId) !== String(req.session.user._id)) {
+      return res.status(403).send('Accès interdit')
     }
 
-    if (String(reservation.userId) !== String(req.session.user._id)) {
-      return res.status(403).send('Accès interdit');
-    }
-
+    // vérification du délai de 48h
     const canCancel =
-      reservation.status === 'confirmed' &&
-      (new Date(reservation.checkIn).getTime() - Date.now()) >=
-        48 * 60 * 60 * 1000;
+      r.status === 'confirmed' &&
+      new Date(r.checkIn) - Date.now() >= 48 * 3600000
 
-    res.render('cancel_reservation', {
-      reservation,
-      canCancel,
-      error: null
-    });
+    // affichage de la page d’annulation
+    res.render('cancel_reservation', { reservation: r, canCancel, error: null })
   } catch (err) {
-    console.error(err);
-    res.status(500).send('Erreur serveur');
+    console.error(err)
+    res.status(500).send('Erreur serveur')
   }
-});
+})
 
-// action annuler
-app.post('/reservations/:id/cancel', ensureAuthenticated, async (req, res) => {
+// confirmation de l’annulation
+app.post('/reservations/:id/cancel', auth, async (req, res) => {
   try {
-    const reservation = await Reservation.findById(req.params.id);
+    // récupération de la réservation
+    const r = await Reservation.findById(req.params.id)
 
-    if (!reservation) {
-      return res.status(404).send('Réservation introuvable');
+    // vérification des droits
+    if (!r || String(r.userId) !== String(req.session.user._id)) {
+      return res.status(403).send('Accès interdit')
     }
 
-    if (String(reservation.userId) !== String(req.session.user._id)) {
-      return res.status(403).send('Accès interdit');
+    // vérification du délai
+    if (new Date(r.checkIn) - Date.now() < 48 * 3600000) {
+      return res.redirect(`/reservations/${r._id}/cancel`)
     }
 
-    const canCancel =
-      reservation.status === 'confirmed' &&
-      (new Date(reservation.checkIn).getTime() - Date.now()) >=
-        48 * 60 * 60 * 1000;
+    // mise à jour du statut
+    r.status = 'cancelled'
+    await r.save()
 
-    if (!canCancel) {
-      return res.redirect(`/reservations/${reservation._id}/cancel`);
-    }
-
-    reservation.status = 'cancelled';
-    await reservation.save();
-
-    res.redirect('/my-reservations');
+    // redirection
+    res.redirect('/my-reservations')
   } catch (err) {
-    console.error(err);
-    res.status(500).send('Erreur serveur');
+    console.error(err)
+    res.status(500).send('Erreur serveur')
   }
-});
+})
 
-/* =========================
-   AUTHENTIFICATION
-========================= */
-
+// page d’inscription
 app.get('/register', (req, res) => {
-  res.render('register', { error: null });
-});
+  res.render('register', { error: null })
+})
 
+// traitement de l’inscription
 app.post('/register', async (req, res) => {
-  const { email, username, password, confirmPassword } = req.body;
+  const { email, username, password, confirmPassword } = req.body
 
-  if (!email || !username || !password || !confirmPassword) {
-    return res.render('register', { error: 'Veuillez remplir tous les champs.' });
-  }
-
-  if (password !== confirmPassword) {
-    return res.render('register', { error: 'Les mots de passe ne correspondent pas.' });
+  // vérification des champs
+  if (!email || !username || !password || password !== confirmPassword) {
+    return res.render('register', { error: 'Informations invalides.' })
   }
 
   try {
-    const exists = await User.findOne({ email });
-    if (exists) {
-      return res.render('register', { error: 'Email déjà utilisé.' });
+    // vérification de l’unicité de l’email
+    if (await User.findOne({ email })) {
+      return res.render('register', { error: 'Email déjà utilisé.' })
     }
 
-    const passwordHash = await bcrypt.hash(password, 10);
-    const user = await User.create({ email, username, passwordHash });
+    // création de l’utilisateur
+    const user = await User.create({
+      email,
+      username,
+      passwordHash: await bcrypt.hash(password, 10)
+    })
 
-    req.session.user = {
-      _id: user._id.toString(),
-      email: user.email,
-      username: user.username
-    };
+    // création de la session
+    req.session.user = { _id: user._id, email, username }
 
-    res.redirect('/');
+    res.redirect('/')
   } catch (err) {
-    console.error(err);
-    res.status(500).send('Erreur serveur');
+    console.error(err)
+    res.status(500).send('Erreur serveur')
   }
-});
+})
 
+// page de connexion
 app.get('/login', (req, res) => {
-  res.render('login', { error: null });
-});
+  res.render('login', { error: null })
+})
 
+// traitement de la connexion
 app.post('/login', async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password } = req.body
 
+  // vérification des champs
   if (!email || !password) {
-    return res.render('login', { error: 'Veuillez remplir tous les champs.' });
+    return res.render('login', { error: 'Champs manquants.' })
   }
 
   try {
-    const user = await User.findOne({ email });
+    // recherche de l’utilisateur
+    const user = await User.findOne({ email })
+
+    // vérification du mot de passe
     if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
-      return res.render('login', { error: 'Email ou mot de passe incorrect.' });
+      return res.render('login', { error: 'Identifiants incorrects.' })
     }
 
-    req.session.user = {
-      _id: user._id.toString(),
-      email: user.email,
-      username: user.username
-    };
+    // création de la session
+    req.session.user = { _id: user._id, email, username: user.username }
 
-    res.redirect('/');
+    res.redirect('/')
   } catch (err) {
-    console.error(err);
-    res.status(500).send('Erreur serveur');
+    console.error(err)
+    res.status(500).send('Erreur serveur')
   }
-});
+})
 
+// déconnexion utilisateur
 app.get('/logout', (req, res) => {
-  req.session.destroy(() => res.redirect('/'));
-});
+  req.session.destroy(() => res.redirect('/'))
+})
 
-/* =========================
-   DÉMARRAGE
-========================= */
-
+// démarrage du serveur
 if (require.main === module) {
   app.listen(PORT, () => {
-    console.log(`Serveur démarré sur http://localhost:${PORT}`);
-  });
+    console.log(`Serveur démarré sur http://localhost:${PORT}`)
+  })
 }
 
-module.exports = app;
+// export pour les tests
+module.exports = app
